@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MogScale - AI Physique & Face Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=JetBrains+Mono:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a1a1a;
+            --secondary: #00ff88;
+            --accent: #00cc70;
+            --bg: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --text: #ffffff;
+            --text-muted: #888;
+            --border: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .nav {
+            background: var(--primary);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-brand {
+            font-size: 1.5em;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-link {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--secondary);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary);
+            border: 2px solid var(--secondary);
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Auth Screens */
+        .auth-screen {
+            display: none;
+            max-width: 450px;
+            margin: 100px auto;
+            background: var(--card-bg);
+            padding: 50px 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .auth-screen.active {
+            display: block;
+        }
+
+        .auth-title {
+            font-size: 2em;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .auth-subtitle {
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1em;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            border: none;
+            border-radius: 10px;
+            color: var(--primary);
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-muted);
+        }
+
+        .auth-switch a {
+            color: var(--secondary);
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Main App Screens */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Upload Screen */
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .upload-zone {
+            background: var(--card-bg);
+            border: 3px dashed var(--border);
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--secondary);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .upload-preview {
+            display: none;
+            position: relative;
+        }
+
+        .upload-preview img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .remove-btn {
+            background: #ff3366;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+
+        /* Ad Modal */
+        .ad-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ad-modal.active {
+            display: flex;
+        }
+
+        .ad-content {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .ad-timer {
+            font-size: 3em;
+            font-weight: 900;
+            color: var(--secondary);
+            margin: 30px 0;
+        }
+
+        /* History */
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .history-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .history-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .history-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .history-info {
+            padding: 15px;
+        }
+
+        .history-score {
+            font-size: 2em;
+            font-weight: 900;
+            color: var(--secondary);
+        }
+
+        .history-date {
+            color: var(--text-muted);
+            font-size: 0.85em;
+        }
+
+        /* Profile */
+        .profile-header {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .profile-pic-container {
+            position: relative;
+        }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--secondary);
+        }
+
+        .edit-pic-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--secondary);
+            color: var(--primary);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 2em;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .profile-bio {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 900;
+            color: var(--secondary);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.85em;
+        }
+
+        .privacy-toggle {
+            margin-top: 20px;
+        }
+
+        /* Feed */
+        .feed-post {
+            background: var(--card-bg);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .post-header {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .post-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .post-user {
+            font-weight: 700;
+        }
+
+        .post-score {
+            margin-left: auto;
+            font-size: 1.5em;
+            font-weight: 900;
+            color: var(--secondary);
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+        }
+
+        .post-footer {
+            padding: 15px 20px;
+        }
+
+        .percentile-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85em;
+            margin-bottom: 10px;
+        }
+
+        /* Paywall */
+        .paywall-card {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            border: 2px solid var(--secondary);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .paywall-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .paywall-title {
+            font-size: 2em;
+            font-weight: 900;
+            margin-bottom: 15px;
+        }
+
+        .paywall-price {
+            font-size: 3em;
+            font-weight: 900;
+            color: var(--secondary);
+            margin: 20px 0;
+        }
+
+        .feature-list {
+            text-align: left;
+            max-width: 400px;
+            margin: 30px auto;
+        }
+
+        .feature-item {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .feature-item:before {
+            content: "✓ ";
+            color: var(--secondary);
+            font-weight: 900;
+            margin-right: 10px;
+        }
+
+        /* Buttons */
+        .btn-secondary {
+            background: var(--card-bg);
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" id="mainNav" style="display: none;">
+        <div class="nav-brand">MOGSCALE</div>
+        <div class="nav-links">
+            <button class="nav-link active" onclick="showScreen('upload')">Upload</button>
+            <button class="nav-link" onclick="showScreen('history')">History</button>
+            <button class="nav-link" onclick="showScreen('feed')">Feed</button>
+            <button class="nav-link" onclick="showScreen('profile')">Profile</button>
+            <button class="profile-btn" id="navProfileBtn" onclick="showScreen('profile')">A</button>
+        </div>
+    </nav>
+
+    <!-- Auth Screens -->
+    <div class="auth-screen active" id="loginScreen">
+        <h1 class="auth-title">Welcome Back</h1>
+        <p class="auth-subtitle">Sign in to MogScale</p>
+        <div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="loginEmail">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="loginPassword">
+            </div>
+            <button type="button" class="btn-primary" onclick="login()">Sign In</button>
+        </div>
+        <p class="auth-switch">
+            Don't have an account? <a onclick="switchAuth('signup')">Sign up</a>
+        </p>
+    </div>
+
+    <div class="auth-screen" id="signupScreen">
+        <h1 class="auth-title">Join MogScale</h1>
+        <p class="auth-subtitle">Create your account</p>
+        <div>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" class="form-input" id="signupUsername">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="signupEmail">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="signupPassword" minlength="6">
+            </div>
+            <button type="button" class="btn-primary" onclick="signup()">Create Account</button>
+        </div>
+        <p class="auth-switch">
+            Already have an account? <a onclick="switchAuth('login')">Sign in</a>
+        </p>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="container" id="mainApp" style="display: none;">
+        
+        <!-- Upload Screen -->
+        <div class="screen active" id="uploadScreen">
+            <h1 style="font-size: 3em; font-weight: 900; margin-bottom: 30px; text-align: center;">
+                Get Your MogScale Score
+            </h1>
+            
+            <div class="upload-grid">
+                <div class="upload-zone" id="frontFaceZone" onclick="document.getElementById('frontFaceInput').click()">
+                    <div class="upload-icon">😊</div>
+                    <h3>Front Face</h3>
+                    <p style="color: #888; font-size: 0.9em;">Click to upload</p>
+                    <input type="file" id="frontFaceInput" accept="image/*" style="display: none;">
+                    <div class="upload-preview" id="frontFacePreview"></div>
+                </div>
+
+                <div class="upload-zone" id="sideFaceZone" onclick="document.getElementById('sideFaceInput').click()">
+                    <div class="upload-icon">👤</div>
+                    <h3>Side Profile</h3>
+                    <p style="color: #888; font-size: 0.9em;">Click to upload</p>
+                    <input type="file" id="sideFaceInput" accept="image/*" style="display: none;">
+                    <div class="upload-preview" id="sideFacePreview"></div>
+                </div>
+
+                <div class="upload-zone" id="physiqueZone" onclick="document.getElementById('physiqueInput').click()">
+                    <div class="upload-icon">💪</div>
+                    <h3>Physique</h3>
+                    <p style="color: #888; font-size: 0.9em;">Click to upload</p>
+                    <input type="file" id="physiqueInput" accept="image/*" style="display: none;">
+                    <div class="upload-preview" id="physiquePreview"></div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <p style="color: #888; margin-bottom: 15px;">📸 <span id="uploadCount">0</span>/3 photos uploaded</p>
+                <button class="btn-primary" id="analyzeBtn" style="max-width: 400px; margin: 0 auto;" onclick="startAnalysis()" disabled>
+                    START ANALYSIS
+                </button>
+            </div>
+        </div>
+
+        <!-- History Screen -->
+        <div class="screen" id="historyScreen">
+            <h1 style="font-size: 2.5em; font-weight: 900; margin-bottom: 30px;">Your Analysis History</h1>
+            <div class="history-grid" id="historyGrid">
+                <!-- History items will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Feed Screen -->
+        <div class="screen" id="feedScreen">
+            <h1 style="font-size: 2.5em; font-weight: 900; margin-bottom: 30px;">Community Feed</h1>
+            <div id="feedContainer">
+                <!-- Feed posts will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Profile Screen -->
+        <div class="screen" id="profileScreen">
+            <div class="profile-header">
+                <div class="profile-pic-container">
+                    <img src="" alt="Profile" class="profile-pic" id="profilePic">
+                    <button class="edit-pic-btn" onclick="editProfilePic()">📷</button>
+                    <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
+                </div>
+                <div class="profile-info">
+                    <h1 class="profile-name" id="profileName">Anonymous User</h1>
+                    <p class="profile-bio" id="profileBio">No bio yet. <a style="color: #00ff88; cursor: pointer;" onclick="editBio()">Add one</a></p>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalAnalyses">0</div>
+                            <div class="stat-label">Analyses</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="avgScore">--</div>
+                            <div class="stat-label">Avg Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="percentileRank">--</div>
+                            <div class="stat-label">Percentile</div>
+                        </div>
+                    </div>
+                    <div class="privacy-toggle">
+                        <label>
+                            <input type="checkbox" id="publicProfile" onchange="togglePrivacy()">
+                            Make profile public
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paywall for Pro Features -->
+            <div class="paywall-card">
+                <div class="paywall-icon">⭐</div>
+                <h2 class="paywall-title">Upgrade to MogScale Pro</h2>
+                <p style="color: #888; margin-bottom: 20px;">Unlock exclusive features and personalized guidance</p>
+                <div class="paywall-price">$9.99<span style="font-size: 0.4em; color: #888;">/month</span></div>
+                <div class="feature-list">
+                    <div class="feature-item">Personalized Workout Plans</div>
+                    <div class="feature-item">Custom Nutrition Advice</div>
+                    <div class="feature-item">Detailed Progress Tracking</div>
+                    <div class="feature-item">Ad-Free Experience</div>
+                    <div class="feature-item">Unlimited Analyses</div>
+                    <div class="feature-item">Priority Support</div>
+                </div>
+                <button class="btn-primary" style="max-width: 300px; margin: 20px auto;" onclick="upgradeToPro()">
+                    Upgrade Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ad Modal -->
+    <div class="ad-modal" id="adModal">
+        <div class="ad-content">
+            <h2 style="font-size: 2em; margin-bottom: 20px;">Watch Ad to Continue</h2>
+            <p style="color: #888; margin-bottom: 20px;">Watch this short ad to unlock your MogScale analysis</p>
+            <div class="ad-timer" id="adTimer">5</div>
+            <p style="color: #888; font-size: 0.9em;">Ad will close automatically...</p>
+            <div style="margin-top: 30px; padding: 20px; background: #2a2a2a; border-radius: 12px;">
+                <p style="font-size: 1.2em; margin-bottom: 10px;">🎯 <strong>Sample Advertisement</strong></p>
+                <p style="color: #888;">This is where a real ad would play</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User Data (in a real app, this would be in a database)
+        let currentUser = null;
+        let users = JSON.parse(localStorage.getItem('mogscale_users')) || {};
+        let analysisHistory = JSON.parse(localStorage.getItem('mogscale_history')) || [];
+        
+        // Check if user is logged in
+        const savedUser = localStorage.getItem('mogscale_current_user');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            showMainApp();
+        }
+
+        function switchAuth(type) {
+            document.getElementById('loginScreen').classList.remove('active');
+            document.getElementById('signupScreen').classList.remove('active');
+            document.getElementById(type + 'Screen').classList.add('active');
+        }
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                alert('Please enter email and password');
+                return;
+            }
+            
+            // Simple authentication (in real app, this would be server-side)
+            const user = Object.values(users).find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('mogscale_current_user', JSON.stringify(user));
+                showMainApp();
+            } else {
+                alert('Invalid email or password');
+            }
+        }
+
+        function signup() {
+            const username = document.getElementById('signupUsername').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            
+            if (!username || !email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters');
+                return;
+            }
+            
+            // Check if user exists
+            if (users[email]) {
+                alert('Email already registered');
+                return;
+            }
+            
+            // Create new user
+            const newUser = {
+                id: Date.now(),
+                username: username,
+                email: email,
+                password: password, // In real app, this would be hashed
+                profilePic: '',
+                bio: '',
+                isPublic: false,
+                isPro: false,
+                analyses: [],
+                createdAt: Date.now()
+            };
+            
+            users[email] = newUser;
+            localStorage.setItem('mogscale_users', JSON.stringify(users));
+            
+            currentUser = newUser;
+            localStorage.setItem('mogscale_current_user', JSON.stringify(newUser));
+            showMainApp();
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('signupScreen').style.display = 'none';
+            document.getElementById('mainNav').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'block';
+            
+            // Update profile
+            updateProfile();
+            loadHistory();
+            loadFeed();
+        }
+
+        function updateProfile() {
+            document.getElementById('profileName').textContent = currentUser.username;
+            document.getElementById('profileBio').innerHTML = currentUser.bio || 'No bio yet. <a style="color: #00ff88; cursor: pointer;" onclick="editBio()">Add one</a>';
+            document.getElementById('navProfileBtn').textContent = currentUser.username[0].toUpperCase();
+            document.getElementById('publicProfile').checked = currentUser.isPublic;
+            
+            if (currentUser.profilePic) {
+                document.getElementById('profilePic').src = currentUser.profilePic;
+            }
+            
+            // Update stats
+            const userAnalyses = analysisHistory.filter(a => a.userId === currentUser.id);
+            document.getElementById('totalAnalyses').textContent = userAnalyses.length;
+            
+            if (userAnalyses.length > 0) {
+                const avgScore = userAnalyses.reduce((sum, a) => sum + a.totalScore, 0) / userAnalyses.length;
+                document.getElementById('avgScore').textContent = avgScore.toFixed(1);
+                
+                // Calculate percentile (mock calculation)
+                const allScores = analysisHistory.map(a => a.totalScore);
+                const userBestScore = Math.max(...userAnalyses.map(a => a.totalScore));
+                const percentile = ((allScores.filter(s => s < userBestScore).length / allScores.length) * 100).toFixed(0);
+                document.getElementById('percentileRank').textContent = percentile + 'th';
+            }
+        }
+
+        function showScreen(screenName) {
+            // Update nav
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update screens
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenName + 'Screen').classList.add('active');
+        }
+
+        function startAnalysis() {
+            // Check if user is pro
+            if (!currentUser.isPro) {
+                // Show ad
+                showAdModal();
+            } else {
+                // Proceed directly
+                runAnalysis();
+            }
+        }
+
+        function showAdModal() {
+            document.getElementById('adModal').classList.add('active');
+            let timeLeft = 5;
+            
+            const countdown = setInterval(() => {
+                timeLeft--;
+                document.getElementById('adTimer').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    document.getElementById('adModal').classList.remove('active');
+                    runAnalysis();
+                }
+            }, 1000);
+        }
+
+        function runAnalysis() {
+            // Mock analysis for demo
+            const mockResult = {
+                userId: currentUser.id,
+                totalScore: Math.floor(Math.random() * 30) + 70,
+                date: Date.now(),
+                images: {
+                    frontFace: document.getElementById('frontFacePreview').querySelector('img')?.src,
+                    sideFace: document.getElementById('sideFacePreview').querySelector('img')?.src,
+                    physique: document.getElementById('physiquePreview').querySelector('img')?.src
+                }
+            };
+            
+            analysisHistory.push(mockResult);
+            localStorage.setItem('mogscale_history', JSON.stringify(analysisHistory));
+            
+            alert(`Your MogScale Score: ${mockResult.totalScore}/100!\n\nUpgrade to Pro to unlock personalized advice and workout plans.`);
+            
+            updateProfile();
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const userAnalyses = analysisHistory.filter(a => a.userId === currentUser.id);
+            const grid = document.getElementById('historyGrid');
+            grid.innerHTML = '';
+            
+            if (userAnalyses.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #888; padding: 60px;">No analyses yet. Upload your first photos!</p>';
+                return;
+            }
+            
+            userAnalyses.reverse().forEach(analysis => {
+                const card = document.createElement('div');
+                card.className = 'history-card';
+                card.innerHTML = `
+                    <img src="${analysis.images.frontFace || analysis.images.physique || '/api/placeholder/300/200'}" class="history-image" alt="Analysis">
+                    <div class="history-info">
+                        <div class="history-score">${analysis.totalScore}/100</div>
+                        <div class="history-date">${new Date(analysis.date).toLocaleDateString()}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function loadFeed() {
+            const feedContainer = document.getElementById('feedContainer');
+            feedContainer.innerHTML = '';
+            
+            // Get public profiles only
+            const publicAnalyses = analysisHistory.filter(a => {
+                const user = Object.values(users).find(u => u.id === a.userId);
+                return user && user.isPublic;
+            });
+            
+            if (publicAnalyses.length === 0) {
+                feedContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 60px;">No public posts yet. Make your profile public to appear in the feed!</p>';
+                return;
+            }
+            
+            publicAnalyses.reverse().slice(0, 20).forEach(analysis => {
+                const user = Object.values(users).find(u => u.id === analysis.userId);
+                if (!user) return;
+                
+                const percentile = Math.floor(Math.random() * 40) + 60; // Mock percentile
+                
+                const post = document.createElement('div');
+                post.className = 'feed-post';
+                post.innerHTML = `
+                    <div class="post-header">
+                        <img src="${user.profilePic || '/api/placeholder/45/45'}" class="post-avatar" alt="${user.username}">
+                        <span class="post-user">${user.username}</span>
+                        <span class="post-score">${analysis.totalScore}</span>
+                    </div>
+                    <img src="${analysis.images.frontFace || analysis.images.physique || '/api/placeholder/600/400'}" class="post-image" alt="Analysis">
+                    <div class="post-footer">
+                        <span class="percentile-badge">Top ${100-percentile}% Globally</span>
+                        <p style="color: #888; margin-top: 10px;">${new Date(analysis.date).toLocaleDateString()}</p>
+                    </div>
+                `;
+                feedContainer.appendChild(post);
+            });
+        }
+
+        function togglePrivacy() {
+            currentUser.isPublic = document.getElementById('publicProfile').checked;
+            users[currentUser.email] = currentUser;
+            localStorage.setItem('mogscale_users', JSON.stringify(users));
+            localStorage.setItem('mogscale_current_user', JSON.stringify(currentUser));
+            loadFeed();
+        }
+
+        function editBio() {
+            const newBio = prompt('Enter your bio:', currentUser.bio);
+            if (newBio !== null) {
+                currentUser.bio = newBio;
+                users[currentUser.email] = currentUser;
+                localStorage.setItem('mogscale_users', JSON.stringify(users));
+                localStorage.setItem('mogscale_current_user', JSON.stringify(currentUser));
+                updateProfile();
+            }
+        }
+
+        function editProfilePic() {
+            document.getElementById('profilePicInput').click();
+        }
+
+        document.getElementById('profilePicInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentUser.profilePic = e.target.result;
+                    users[currentUser.email] = currentUser;
+                    localStorage.setItem('mogscale_users', JSON.stringify(users));
+                    localStorage.setItem('mogscale_current_user', JSON.stringify(currentUser));
+                    updateProfile();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function upgradeToPro() {
+            if (confirm('Upgrade to MogScale Pro for $9.99/month?\n\nThis is a demo - no actual payment will be processed.')) {
+                currentUser.isPro = true;
+                users[currentUser.email] = currentUser;
+                localStorage.setItem('mogscale_users', JSON.stringify(users));
+                localStorage.setItem('mogscale_current_user', JSON.stringify(currentUser));
+                alert('Welcome to MogScale Pro! 🎉\n\nYou now have access to:\n✓ Ad-free experience\n✓ Personalized workout plans\n✓ Custom nutrition advice\n✓ Unlimited analyses');
+                location.reload();
+            }
+        }
+
+        // Upload handling
+        const uploadedImages = {
+            frontFace: null,
+            sideFace: null,
+            physique: null
+        };
+
+        function setupUpload(zoneId, inputId, previewId, type) {
+            const input = document.getElementById(inputId);
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        uploadedImages[type] = e.target.result;
+                        showPreview(previewId, e.target.result, type);
+                        updateUploadCount();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function showPreview(previewId, src, type) {
+            const preview = document.getElementById(previewId);
+            preview.style.display = 'block';
+            preview.innerHTML = `
+                <img src="${src}" style="width: 100%; border-radius: 12px; margin-bottom: 10px;">
+                <button class="remove-btn" onclick="removeImage('${type}', '${previewId}')">Remove</button>
+            `;
+        }
+
+        function removeImage(type, previewId) {
+            uploadedImages[type] = null;
+            document.getElementById(previewId).style.display = 'none';
+            updateUploadCount();
+        }
+
+        function updateUploadCount() {
+            const count = Object.values(uploadedImages).filter(Boolean).length;
+            document.getElementById('uploadCount').textContent = count;
+            document.getElementById('analyzeBtn').disabled = count === 0;
+        }
+
+        setupUpload('frontFaceZone', 'frontFaceInput', 'frontFacePreview', 'frontFace');
+        setupUpload('sideFaceZone', 'sideFaceInput', 'sideFacePreview', 'sideFace');
+        setupUpload('physiqueZone', 'physiqueInput', 'physiquePreview', 'physique');
+    </script>
+</body>
+</html>
